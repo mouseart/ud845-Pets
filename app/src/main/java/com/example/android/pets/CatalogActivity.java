@@ -15,9 +15,11 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -29,10 +31,15 @@ import android.widget.TextView;
 import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetDbHelper;
 
+import static android.text.style.TtsSpan.GENDER_MALE;
+import static com.example.android.pets.data.PetDbHelper.DATABASE_NAME;
+
 /**
  * Displays list of pets that were entered and stored in the app.
  */
 public class CatalogActivity extends AppCompatActivity {
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +56,13 @@ public class CatalogActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
         displayDatabaseInfo();
+
     }
 
     @Override
@@ -67,13 +80,44 @@ public class CatalogActivity extends AppCompatActivity {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
                 // Do nothing for now
+                insertData();
+                displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
                 // Do nothing for now
+
+
+                PetDbHelper mDbHelper = new PetDbHelper(this);
+                // 调用getReadableDatabase()方法创建或打开一个可以读的数据库
+                //通过返回的SQLiteDatabase对象对数据库进行操作
+                SQLiteDatabase sqliteDatabase = mDbHelper.getReadableDatabase();
+
+                //删除名为test.db数据库
+                deleteDatabase(DATABASE_NAME);
+                displayDatabaseInfo();
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void insertData() {
+
+        PetDbHelper mDbHelper = new PetDbHelper(this);
+
+        // Gets the data repository in write mode
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        // Create a new map of values, where column names are the keys
+        ContentValues values = new ContentValues();
+        values.put(PetContract.PetEntry.COLUMN_PET_NAME, "Toto");
+        values.put(PetContract.PetEntry.COLUMN_PET_BREED, "Terrier");
+        values.put(PetContract.PetEntry.COLUMN_PET_GENDER, GENDER_MALE);
+        values.put(PetContract.PetEntry.COLUMN_PET_WEIGHT, 7);
+
+// Insert the new row, returning the primary key value of the new row
+        long newRowId = db.insert(PetContract.PetEntry.TABLE_NAME, null, values);
+
     }
 
     /**
